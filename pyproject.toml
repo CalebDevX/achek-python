@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "achek"
+version = "2.0.0"
+description = "Official Python SDK for Achek — WhatsApp OTP, AI chatbots & business messaging for Nigeria"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+keywords = ["achek", "whatsapp", "otp", "verification", "nigeria", "sms", "2fa", "chatbot"]
+authors = [{ name = "Achek", email = "dev@achek.com.ng" }]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Communications :: Telephony",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://achek.com.ng"
+Documentation = "https://docs.achek.com.ng"
+Repository = "https://github.com/CalebDevX/achek-python.git"
+"Bug Tracker" = "https://github.com/CalebDevX/achek-python/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["achek*"]
+exclude = ["achekverify*"]
