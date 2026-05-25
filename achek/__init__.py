@@ -1,15 +1,15 @@
 """
-achekverify — Official Python SDK for Achek Connect
+achek — Official Python SDK for Achek Connect
 
 WhatsApp OTP verification, automated alerts, transaction notifications,
 transactional email, ticket tracking, and webhook utilities for
 Nigerian developers.
 
-pip install achekverify
+pip install achek
 
 Usage::
 
-    from achekverify import AchekConnect, AchekWebhookHelper
+    from achek import AchekConnect, AchekWebhookHelper
 
     client = AchekConnect(api_key="achek_live_xxxxxxxxxxxx")
 
