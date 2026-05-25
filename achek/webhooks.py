@@ -8,7 +8,7 @@ The signature is sent in the ``X-Achek-Signature`` HTTP header as
 Usage (Flask example)::
 
     from flask import Flask, request, abort
-    from achekverify import AchekWebhookHelper
+    from achek import AchekWebhookHelper
 
     app = Flask(__name__)
     helper = AchekWebhookHelper("your_webhook_secret")
@@ -26,7 +26,7 @@ Usage (Django example)::
 
     from django.views.decorators.csrf import csrf_exempt
     from django.http import HttpResponse, HttpResponseBadRequest
-    from achekverify import AchekWebhookHelper
+    from achek import AchekWebhookHelper
 
     helper = AchekWebhookHelper("your_webhook_secret")
 

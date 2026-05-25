@@ -20,7 +20,7 @@ class AchekConnect:
 
     Example::
 
-        from achekverify import AchekConnect
+        from achek import AchekConnect
 
         client = AchekConnect(api_key="achek_live_xxxxxxxxxxxx")
 
