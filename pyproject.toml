@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "achek"
-version = "2.0.0"
+version = "2.0.1"
 description = "Official Python SDK for Achek — WhatsApp OTP, AI chatbots & business messaging for Nigeria"
 readme = "README.md"
 license = "MIT"
