@@ -1,0 +1,337 @@
+Metadata-Version: 2.4
+Name: achek
+Version: 2.0.0
+Summary: Official Python SDK for Achek — WhatsApp OTP, AI chatbots & business messaging for Nigeria
+Author-email: Achek <dev@achek.com.ng>
+License-Expression: MIT
+Project-URL: Homepage, https://achek.com.ng
+Project-URL: Documentation, https://docs.achek.com.ng
+Project-URL: Repository, https://github.com/CalebDevX/achek-python.git
+Project-URL: Bug Tracker, https://github.com/CalebDevX/achek-python/issues
+Keywords: achek,whatsapp,otp,verification,nigeria,sms,2fa,chatbot
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Communications :: Telephony
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+
+# achek — Python SDK
+
+Official Python SDK for [Achek](https://achek.com.ng) — WhatsApp OTP, automated alerts, transaction notifications, broadcasts, support ticket tracking, transactional email, and webhook utilities for Nigeria and Africa.
+
+[![PyPI](https://img.shields.io/pypi/v/achek)](https://pypi.org/project/achek/)
+[![Python](https://img.shields.io/pypi/pyversions/achek)](https://pypi.org/project/achek/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+## Install
+
+```bash
+pip install achek
+```
+
+## Quick Start
+
+```python
+from achek import AchekConnect
+
+client = AchekConnect(api_key="your_api_key")
+
+# Send WhatsApp OTP
+result = client.otp.send("+2348012345678")
+request_id = result["requestId"]
+
+# Verify the code the user entered
+verification = client.otp.verify(request_id, user_code)
+if verification["valid"]:
+    login_user()  # ✅
+```
+
+> Get your API key from the [Achek dashboard](https://achek.com.ng/dashboard/api-keys).
+
+---
+
+## OTP Verification
+
+```python
+# Simple send
+result     = client.otp.send("+2348012345678")
+request_id = result["requestId"]
+
+# With custom template (Growth+ plans)
+result = client.otp.send(
+    "+2348012345678",
+    template="Hi {{name}}, your {{company}} code is {{code}}. Valid 10 mins.",
+    recipient_name="Emeka",
+    company_name="MyApp",
+    idempotency_key="otp-req-user-789",  # safe to retry with the same key
+)
+
+# Verify
+result = client.otp.verify(request_id, "847293")
+# {"valid": True, "message": "OTP verified successfully"}
+
+# Fetch OTP logs
+logs = client.otp.logs(limit=20, status="verified")
+```
+
+---
+
+## Transaction Alerts
+
+Send formatted debit/credit/transfer alerts directly to a customer's WhatsApp:
+
+```python
+client.alerts.transaction(
+    "+2348012345678",
+    type="debit",
+    amount=15000,
+    reference="TXN-20240519-001",
+    account_name="Emeka Okafor",
+    balance=240000,
+    description="Transfer to Kuda",
+)
+```
+
+This automatically sends a clean WhatsApp message:
+```
+💸 Debit Alert
+
+Amount: ₦15,000.00
+Account: Emeka Okafor
+Ref: `TXN-20240519-001`
+Narration: Transfer to Kuda
+Balance: ₦240,000.00
+
+_Powered by Achek_
+```
+
+### Custom Alerts
+
+```python
+client.alerts.send(
+    "+2348012345678",
+    "*Your account has been credited with ₦5,000* 🎉",
+    category="notification",
+    idempotency_key="alert-credit-txn-001",
+)
+```
+
+---
+
+## Broadcasts
+
+Send a single WhatsApp message to up to 1,000 recipients at once:
+
+```python
+result = client.broadcasts.send(
+    name="Black Friday Promo",
+    message="🔥 *50% OFF* today only! Code: *FRIDAY50*",
+    recipients=["+2348012345678", "+2349087654321"],  # up to 1000
+)
+
+# Check delivery status
+status = client.broadcasts.status(result["id"])
+```
+
+---
+
+## Support Ticket Tracking
+
+Create support tickets and keep customers updated on WhatsApp automatically:
+
+```python
+# Create a ticket — customer gets a WhatsApp notification
+ticket    = client.tickets.create(
+    "+2348012345678",
+    "Payment not reflecting",
+    description="Paid ₦5,000 but order not updated",
+    priority="high",
+    notify_customer=True,
+)
+ticket_id = ticket["ticketId"]
+
+# Update — customer gets a WhatsApp update
+client.tickets.update(
+    ticket_id,
+    status="in_progress",
+    notify_customer=True,
+    notification_message="We're investigating — expected resolution: 2 hours.",
+)
+
+# Resolve
+client.tickets.resolve(ticket_id, "Your issue has been fixed! Check your account.")
+
+# List open tickets
+open_tickets = client.tickets.list(status="open")
+```
+
+---
+
+## Transactional Email
+
+Send transactional emails via Achek's configured SMTP. Sender address and domain are set in your dashboard.
+
+```python
+# HTML email
+client.email.send(
+    to="customer@example.com",
+    subject="Your OTP code",
+    html="<p>Your code is <strong>847293</strong>. Valid for 10 minutes.</p>",
+)
+
+# Plain-text email
+client.email.send(
+    to="customer@example.com",
+    subject="Order confirmed",
+    text="Thanks for your order! Delivery in 3–5 business days.",
+    from_name="MyShop Support",
+)
+```
+
+---
+
+## AI Chatbot & Webhook Events
+
+Achek includes a built-in AI chatbot that responds to WhatsApp messages automatically. Configure it from the dashboard — no extra API calls needed.
+
+### Webhook events
+
+Set a webhook URL in **AI Bot → Webhook URL** in your dashboard. Achek will POST to it on these events:
+
+| Event | Fired when | Key fields |
+|---|---|---|
+| `message.incoming` | Customer sends a message to your bot | `phone`, `message`, `timestamp` |
+| `message.outgoing` | Bot replies to the customer | `phone`, `message`, `timestamp` |
+| `spam.quarantine` | Sender exceeded velocity limit | `phone`, `quarantined_until`, `message_count` |
+| `handoff.requested` | Consecutive depth reached / human took over | `phone`, `reason`, `exchanges`, `bot_config_id` |
+| `ticket.created` | Bot opens a support ticket | `ticket_id`, `phone`, `subject`, `priority` |
+| `lead.captured` | Bot saves a customer lead | `ticket_id`, `phone`, `name`, `email` |
+
+### Verifying webhook signatures
+
+Achek signs every delivery with HMAC-SHA256. Always verify before trusting the payload:
+
+```python
+# Flask example
+from flask import Flask, request, abort
+from achek import AchekWebhookHelper
+
+app    = Flask(__name__)
+helper = AchekWebhookHelper(os.environ["ACHEK_WEBHOOK_SECRET"])
+
+@app.post("/webhook/achek")
+def achek_webhook():
+    sig = request.headers.get("X-Achek-Signature", "")
+    if not helper.verify(sig, request.get_data()):
+        abort(400, "Invalid signature")
+
+    event = helper.parse(request.get_data())
+
+    if event["event"] == "handoff.requested":
+        pass  # notify your support team
+
+    if event["event"] == "lead.captured":
+        phone = event.get("phone")
+        name  = event.get("name")
+        # → sync to your CRM, spreadsheet, etc.
+
+    return "", 200
+
+# Django example
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, HttpResponseBadRequest
+from achek import AchekWebhookHelper
+
+helper = AchekWebhookHelper(settings.ACHEK_WEBHOOK_SECRET)
+
+@csrf_exempt
+def achek_webhook(request):
+    sig = request.headers.get("X-Achek-Signature", "")
+    if not helper.verify(sig, request.body):
+        return HttpResponseBadRequest("Invalid signature")
+    event = helper.parse(request.body)
+    return HttpResponse(status=200)
+```
+
+### Querying captured leads
+
+```python
+all_tickets = client.tickets.list(status="open")
+leads = [t for t in all_tickets if t.get("metadata", {}).get("type") == "lead"]
+
+for lead in leads:
+    print(lead["ticketId"])    # "LEAD-1748000000000-XY12"
+    print(lead["phoneNumber"]) # "+2348012345678"
+    print(lead["metadata"])    # { "source": "whatsapp_bot", "type": "lead", ... }
+```
+
+---
+
+## Error Handling
+
+```python
+from achek import AchekConnect, AchekConnectError
+
+try:
+    client.otp.send("+2348012345678")
+except AchekConnectError as e:
+    print(e.args[0])     # "No active subscription"
+    print(e.status_code) # 402
+    print(e.code)        # "SUBSCRIPTION_REQUIRED"
+```
+
+---
+
+## Configuration
+
+```python
+client = AchekConnect(
+    api_key="your_api_key",
+    base_url="https://api.achek.com.ng",  # override if self-hosted
+    timeout=15,                            # seconds (default: 15)
+    max_attempts=3,                        # total tries incl. first (default: 3)
+    initial_delay_ms=500,                  # first retry: 500 ms, then 1 000, 2 000…
+)
+```
+
+---
+
+## API Reference
+
+| Module | Method | Description |
+|---|---|---|
+| `otp` | `send(phone, **kwargs)` | Send WhatsApp OTP |
+| `otp` | `verify(request_id, code)` | Verify OTP code |
+| `otp` | `logs(**kwargs)` | Fetch OTP delivery logs |
+| `alerts` | `send(phone, message, **kwargs)` | Send custom WhatsApp alert |
+| `alerts` | `transaction(phone, **kwargs)` | Send formatted transaction alert |
+| `broadcasts` | `send(name, message, recipients)` | Send broadcast to up to 1,000 numbers |
+| `broadcasts` | `list()` | List recent broadcasts |
+| `broadcasts` | `status(broadcast_id)` | Get broadcast delivery status |
+| `tickets` | `create(phone, subject, **kwargs)` | Create support ticket |
+| `tickets` | `list(**kwargs)` | List tickets |
+| `tickets` | `get(ticket_id)` | Get ticket by ID |
+| `tickets` | `update(ticket_id, **kwargs)` | Update status/priority |
+| `tickets` | `resolve(ticket_id, message?)` | Resolve and notify customer |
+| `email` | `send(to, subject, **kwargs)` | Send transactional email |
+| `AchekWebhookHelper` | `verify(sig, payload)` | Verify HMAC-SHA256 signature |
+| `AchekWebhookHelper` | `parse(payload)` | Parse raw webhook payload |
+
+---
+
+## Links
+
+- Website: [achek.com.ng](https://achek.com.ng)
+- Dashboard: [achek.com.ng/dashboard](https://achek.com.ng/dashboard)
+- Docs: [achek.com.ng/docs](https://achek.com.ng/docs)
+- Issues: [github.com/CalebDevX/achek-python/issues](https://github.com/CalebDevX/achek-python/issues)
+
+## License
+
+MIT — see [LICENSE](LICENSE)
